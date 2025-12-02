@@ -1,4 +1,4 @@
-package com.peterj.motorwaysticker.ui.theme
+package com.peterj.motorwaysticker.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
