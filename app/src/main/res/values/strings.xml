@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">Highway Sticker</string>
+    <string name="app_name">E-sticker</string>
+    <string name="national_stickers">National Stickers</string>
+    <string name="purchase">Purchase</string>
+    <string name="yearly_stickers">Annual County Stickers</string>
+    <string name="no_data_available">No data available</string>
+    <string name="vignette_type_display_day">daily (1 day)</string>
+    <string name="vignette_type_display_week">weekly (10 days)</string>
+    <string name="vignette_type_display_month">monthly</string>
+    <string name="vignette_type_display_unknown">Unknown</string>
 </resources>
