@@ -3,12 +3,13 @@ package com.peterj.motorwaysticker.presentation.features.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peterj.motorwaysticker.domain.model.HighwayInfo
-import com.peterj.motorwaysticker.presentation.model.UiVignette
+import com.peterj.motorwaysticker.domain.model.SelectVignette
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
-import com.peterj.motorwaysticker.presentation.model.VignetteType
+import com.peterj.motorwaysticker.domain.model.VignetteType
 import com.peterj.motorwaysticker.domain.usecase.GetHighwayInfoUseCase
 import com.peterj.motorwaysticker.domain.usecase.GetVehicleInfoUseCase
 import com.peterj.motorwaysticker.presentation.common.state.UiState
+import com.peterj.motorwaysticker.domain.model.SelectedVignetteInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,8 +25,11 @@ class MainViewModel @Inject constructor(
     private val _vehicleInfoState = MutableStateFlow<UiState<VehicleInfo>>(UiState.Empty)
     val vehicleInfoState: StateFlow<UiState<VehicleInfo>> = _vehicleInfoState
 
-    private val _vignettesState = MutableStateFlow<UiState<List<UiVignette>>>(UiState.Empty)
-    val vignettesState: StateFlow<UiState<List<UiVignette>>> = _vignettesState
+    private val _vignettesState = MutableStateFlow<UiState<List<SelectVignette>>>(UiState.Empty)
+    val vignettesState: StateFlow<UiState<List<SelectVignette>>> = _vignettesState
+
+    private val _selectedCountyInfo = MutableStateFlow<SelectedVignetteInfo?>(null)
+    val selectedCountyInfo: StateFlow<SelectedVignetteInfo?> = _selectedCountyInfo
 
 
     fun loadData() = viewModelScope.launch {
@@ -55,13 +59,14 @@ class MainViewModel @Inject constructor(
         )
 
         _vignettesState.value = UiState.Success(uiList)
+        _selectedCountyInfo.value = getCounties(highwayInfo)
     }
 
     private fun filterVignettes(
         highwayInfo: HighwayInfo,
         userVehicleCategory: String,
         userVehicleVignetteType: String
-    ): List<UiVignette> {
+    ): List<SelectVignette> {
         return highwayInfo.vignettes
             .filter { it.vehicleCategory == userVehicleCategory }
             .filter { vignette ->
@@ -70,11 +75,30 @@ class MainViewModel @Inject constructor(
                 } || vignette.types.isEmpty()
             }
             .map {
-                UiVignette(
+                SelectVignette(
                     vignetteCategory = userVehicleVignetteType,
                     vignetteType = VignetteType.valueOf(it.types.first()),
                     cost = it.cost,
                 )
             }
+    }
+
+    private fun getCounties(
+        highwayInfo: HighwayInfo,
+    ): SelectedVignetteInfo {
+        val vignette =  highwayInfo.vignettes
+            .firstOrNull { vignette ->
+                vignette.types.containsAll(highwayInfo.counties.map { it.id })
+            }
+
+        return if (vignette != null) {
+            SelectedVignetteInfo(
+                countyNames = highwayInfo.counties.map { it.name },
+                cost = vignette.cost,
+                transactionFee = vignette.transactionFee
+            )
+        } else {
+            SelectedVignetteInfo(emptyList(), 0, 0)
+        }
     }
 }

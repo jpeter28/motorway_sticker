@@ -43,10 +43,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.peterj.motorwaysticker.R
-import com.peterj.motorwaysticker.presentation.model.UiVignette
+import com.peterj.motorwaysticker.domain.model.SelectVignette
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
 import com.peterj.motorwaysticker.presentation.common.components.UiStateWrapper
 import com.peterj.motorwaysticker.presentation.common.state.UiState
+import kotlinx.serialization.json.Json
 
 @Composable
 fun MainScreen(
@@ -83,7 +84,10 @@ fun MainScreen(
         YearlyStickerCard(
             title = stringResource(R.string.yearly_stickers),
             onClick = {
-                navController.navigate("yearly_stickers")
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    "counties", Json.encodeToString(viewModel.selectedCountyInfo.value)
+                )
+                navController.navigate("county_chooser")
             }
         )
     }
@@ -152,7 +156,7 @@ fun UserInfoCard(
 
 @Composable
 fun CountryStickerCard(
-    uiState: UiState<List<UiVignette>>,
+    uiState: UiState<List<SelectVignette>>,
     modifier: Modifier = Modifier,
     title: String,
     buttonText: String,
@@ -171,7 +175,7 @@ fun CountryStickerCard(
                 vignettes.forEachIndexed { index, (vignetteCategory, vignetteType, cost) ->
                     RadioButtonListItemCard(
                         middleText = "$vignetteCategory - ${stringResource(vignetteType.resId)}",
-                        rightText = "$cost Ft",
+                        rightText = stringResource(R.string.formatted_price, cost),
                         selected = index == selectedIndex,
                         onSelect = { selectedIndex = index }
                     )
@@ -183,7 +187,7 @@ fun CountryStickerCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp)
             ) {
-                Text(text = buttonText)
+                Text(text = buttonText, style = MaterialTheme.typography.titleMedium)
             }
         }
     }

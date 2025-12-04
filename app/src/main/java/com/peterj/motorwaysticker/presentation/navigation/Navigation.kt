@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import com.peterj.motorwaysticker.presentation.features.confirm.ConfirmScreen
 import com.peterj.motorwaysticker.presentation.features.main.MainScreen
 import com.peterj.motorwaysticker.presentation.features.success.SuccessScreen
-import com.peterj.motorwaysticker.presentation.features.yearly_stickers.YearlyStickersScreen
+import com.peterj.motorwaysticker.presentation.features.county_chooser.CountyChooserScreen
 
 @Composable
 fun Navigation(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -18,15 +18,15 @@ fun Navigation(navController: NavHostController, modifier: Modifier = Modifier) 
         }
 
         composable(
-            "yearly_stickers",
+            "county_chooser",
         ) {
-            YearlyStickersScreen()
+            CountyChooserScreen(navController)
         }
 
         composable(
             "confirm",
         ) {
-            ConfirmScreen()
+            ConfirmScreen(navController)
         }
 
         composable(

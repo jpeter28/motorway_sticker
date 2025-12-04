@@ -4,6 +4,9 @@
     <string name="purchase">Purchase</string>
     <string name="yearly_stickers">Annual County Stickers</string>
     <string name="no_data_available">No data available</string>
+    <string name="next">Next</string>
+    <string name="total_amount">Total amount</string>
+    <string name="formatted_price">%1$d Ft</string>
     <string name="vignette_type_display_day">daily (1 day)</string>
     <string name="vignette_type_display_week">weekly (10 days)</string>
     <string name="vignette_type_display_month">monthly</string>

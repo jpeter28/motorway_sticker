@@ -1,8 +1,8 @@
-package com.peterj.motorwaysticker.presentation.model
+package com.peterj.motorwaysticker.domain.model
 
 import com.peterj.motorwaysticker.R
 
-data class UiVignette(
+data class SelectVignette(
     val vignetteCategory: String,
     val vignetteType: VignetteType,
     val cost: Int,
