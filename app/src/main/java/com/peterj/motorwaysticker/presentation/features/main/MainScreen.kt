@@ -30,9 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.peterj.motorwaysticker.R
 import com.peterj.motorwaysticker.domain.model.SelectVignette
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
+import com.peterj.motorwaysticker.domain.model.VignetteType
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 import com.peterj.motorwaysticker.presentation.common.components.UiStateWrapper
 import com.peterj.motorwaysticker.presentation.common.state.UiState
@@ -62,6 +61,7 @@ fun MainScreen(
     val activity = context as? Activity
     val vehicleState by viewModel.vehicleInfoState.collectAsState()
     val vignettesState by viewModel.vignettesState.collectAsState()
+    val selectedVignette by viewModel.selectedVignette.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
@@ -90,29 +90,54 @@ fun MainScreen(
 
                 CountryStickerCard(
                     uiState = vignettesState,
+                    selectedVignette = selectedVignette,
+                    viewModel = viewModel,
                     title = stringResource(R.string.national_stickers),
                     buttonText = stringResource(R.string.purchase),
                     onButtonClick = {
-                        navController.navigate("confirm")
-                    }
-                )
-
-                YearlyStickerCard(
-                    title = stringResource(R.string.yearly_stickers),
-                    onClick = {
-                        val vehicleInfo = (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
+                        val vehicleInfo =
+                            (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
                         if (vehicleInfo != null) {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "vehicleInfo", Json.encodeToString(vehicleInfo)
                             )
                         }
-
                         navController.currentBackStackEntry?.savedStateHandle?.set(
-                            "counties", Json.encodeToString(viewModel.selectedCountyInfo.value)
+                            "selectedVignette",
+                            Json.encodeToString(viewModel.selectedVignette.value)
                         )
-                        navController.navigate("county_chooser")
+                        navController.navigate("confirm")
                     }
                 )
+
+                val yearVignette = (vignettesState as? UiState.Success)
+                    ?.data
+                    ?.firstOrNull { it.vignetteType == VignetteType.YEAR }
+
+                if (yearVignette != null) {
+                    YearlyStickerCard(
+                        title = stringResource(R.string.yearly_stickers),
+                        onClick = {
+                            val vehicleInfo =
+                                (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
+                            if (vehicleInfo != null) {
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "vehicleInfo", Json.encodeToString(vehicleInfo)
+                                )
+                            }
+
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "selectedVignette",
+                                Json.encodeToString(yearVignette)
+                            )
+
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "counties", Json.encodeToString(viewModel.selectedCountyInfo.value)
+                            )
+                            navController.navigate("county_chooser")
+                        }
+                    )
+                }
             }
         }
     )
@@ -182,13 +207,13 @@ fun UserInfoCard(
 @Composable
 fun CountryStickerCard(
     uiState: UiState<List<SelectVignette>>,
+    selectedVignette: SelectVignette?,
+    viewModel: MainViewModel,
     modifier: Modifier = Modifier,
     title: String,
     buttonText: String,
     onButtonClick: () -> Unit
 ) {
-    var selectedIndex by remember { mutableStateOf<Int?>(null) }
-
     BaseCard(modifier = modifier) {
         UiStateWrapper(state = uiState) { vignettes ->
             Text(
@@ -197,14 +222,18 @@ fun CountryStickerCard(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Column(Modifier.selectableGroup()) {
-                vignettes.forEachIndexed { index, (vignetteCategory, vignetteType, cost) ->
-                    RadioButtonListItemCard(
-                        middleText = "$vignetteCategory - ${stringResource(vignetteType.resId)}",
-                        rightText = stringResource(R.string.formatted_price, cost),
-                        selected = index == selectedIndex,
-                        onSelect = { selectedIndex = index }
-                    )
-                }
+                vignettes
+                    .filter { vignette ->
+                        vignette.vignetteType != VignetteType.YEAR && vignette.vignetteType != VignetteType.UNKNOWN
+                    }
+                    .forEach { vignette ->
+                        RadioButtonListItemCard(
+                            middleText = "${vignette.vignetteCategory} - ${stringResource(vignette.vignetteType.resId)}",
+                            rightText = stringResource(R.string.formatted_price, vignette.cost),
+                            selected = vignette.vignetteType == selectedVignette?.vignetteType,
+                            onSelect = { viewModel.selectVignette(vignette) }
+                        )
+                    }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(

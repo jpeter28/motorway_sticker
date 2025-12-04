@@ -31,6 +31,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.peterj.motorwaysticker.R
+import com.peterj.motorwaysticker.domain.model.SelectVignette
 import com.peterj.motorwaysticker.domain.model.SelectedVignetteInfo
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
@@ -60,8 +61,17 @@ fun ConfirmScreen(
             Json.decodeFromString<VehicleInfo>(it)
         }
 
+        val selectedVignetteJson: String? = navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.get<String>("selectedVignette")
+
+        val selectedVignette: SelectVignette? = selectedVignetteJson?.let {
+            Json.decodeFromString<SelectVignette>(it)
+        }
+
         viewModel.selectedVignetteInfo = info
         viewModel.vehicleInfo = vehicleInfo
+        viewModel.selectedVignette = selectedVignette
     }
 
     val info = viewModel.selectedVignetteInfo
@@ -131,7 +141,8 @@ fun ConfirmScreen(
                             text = stringResource(R.string.sticker_type),
                             style = MaterialTheme.typography.bodySmall
                         )
-                        Text(text = "Eves", style = MaterialTheme.typography.bodySmall) //TODO use real data
+                        Text(text = stringResource(viewModel.selectedVignette?.vignetteType?.resId ?: R.string.vignette_type_display_unknown),
+                            style = MaterialTheme.typography.bodySmall)
                     }
                 }
 

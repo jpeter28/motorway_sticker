@@ -134,13 +134,22 @@ fun CountyChooserScreen(
                                     )
                                 )
                             )
-                            val json = navController.previousBackStackEntry
+                            val vehicleJson = navController.previousBackStackEntry
                                 ?.savedStateHandle
                                 ?.get<String>("vehicleInfo")
 
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "vehicleInfo", json
+                                "vehicleInfo", vehicleJson
                             )
+
+                            val selectedVignetteJson = navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.get<String>("selectedVignette")
+
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "selectedVignette", selectedVignetteJson
+                            )
+
                             navController.navigate("confirm")
                         },
                         modifier = Modifier.fillMaxWidth(),

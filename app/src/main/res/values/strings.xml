@@ -17,6 +17,6 @@
     <string name="vignette_type_display_day">daily (1 day)</string>
     <string name="vignette_type_display_week">weekly (10 days)</string>
     <string name="vignette_type_display_month">monthly</string>
-    <string name="vignette_type_display_year">yearly</string>
+    <string name="vignette_type_display_year">yearly county</string>
     <string name="vignette_type_display_unknown">Unknown</string>
 </resources>

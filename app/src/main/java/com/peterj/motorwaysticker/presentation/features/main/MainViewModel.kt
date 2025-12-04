@@ -31,6 +31,9 @@ class MainViewModel @Inject constructor(
     private val _selectedCountyInfo = MutableStateFlow<SelectedVignetteInfo?>(null)
     val selectedCountyInfo: StateFlow<SelectedVignetteInfo?> = _selectedCountyInfo
 
+    private val _selectedVignette = MutableStateFlow<SelectVignette?>(null)
+    val selectedVignette: StateFlow<SelectVignette?> = _selectedVignette
+
 
     fun loadData() = viewModelScope.launch {
         _vehicleInfoState.value = UiState.Loading
@@ -62,6 +65,10 @@ class MainViewModel @Inject constructor(
         _selectedCountyInfo.value = getCounties(highwayInfo)
     }
 
+    fun selectVignette(selectVignette: SelectVignette) {
+        _selectedVignette.value = selectVignette
+    }
+
     private fun filterVignettes(
         highwayInfo: HighwayInfo,
         userVehicleCategory: String,
@@ -69,15 +76,15 @@ class MainViewModel @Inject constructor(
     ): List<SelectVignette> {
         return highwayInfo.vignettes
             .filter { it.vehicleCategory == userVehicleCategory }
-            .filter { vignette ->
-                vignette.types.none { type ->
-                    type == "YEAR" || type.startsWith("YEAR_")
-                } || vignette.types.isEmpty()
-            }
+//            .filter { vignette ->
+//                vignette.types.none { type ->
+//                    type == "YEAR" || type.startsWith("YEAR_")
+//                } || vignette.types.isEmpty()
+//            }
             .map {
                 SelectVignette(
                     vignetteCategory = userVehicleVignetteType,
-                    vignetteType = VignetteType.valueOf(it.types.first()),
+                    vignetteType = VignetteType.fromString(it.types.first()),
                     cost = it.cost,
                 )
             }

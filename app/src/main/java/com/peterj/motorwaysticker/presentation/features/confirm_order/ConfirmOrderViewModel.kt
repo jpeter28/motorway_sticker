@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peterj.motorwaysticker.domain.model.HighwayOrder
 import com.peterj.motorwaysticker.domain.model.HighwayOrderResult
+import com.peterj.motorwaysticker.domain.model.SelectVignette
 import com.peterj.motorwaysticker.domain.model.SelectedVignetteInfo
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
 import com.peterj.motorwaysticker.domain.usecase.PostHighwayOrderUseCase
@@ -23,6 +24,7 @@ class ConfirmOrderViewModel @Inject constructor(
 ) : ViewModel() {
     var selectedVignetteInfo by mutableStateOf<SelectedVignetteInfo?>(null)
     var vehicleInfo by mutableStateOf<VehicleInfo?>(null)
+    var selectedVignette by mutableStateOf<SelectVignette?>(null)
 
     val totalCost: Int
         get() = (selectedVignetteInfo?.counties?.count() ?: 0) * (selectedVignetteInfo?.cost
