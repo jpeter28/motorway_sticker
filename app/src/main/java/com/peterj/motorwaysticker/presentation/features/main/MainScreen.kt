@@ -1,5 +1,6 @@
 package com.peterj.motorwaysticker.presentation.features.main
 
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -45,6 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import com.peterj.motorwaysticker.R
 import com.peterj.motorwaysticker.domain.model.SelectVignette
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
+import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 import com.peterj.motorwaysticker.presentation.common.components.UiStateWrapper
 import com.peterj.motorwaysticker.presentation.common.state.UiState
 import kotlinx.serialization.json.Json
@@ -54,6 +58,8 @@ fun MainScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: MainViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val activity = context as? Activity
     val vehicleState by viewModel.vehicleInfoState.collectAsState()
     val vignettesState by viewModel.vignettesState.collectAsState()
 
@@ -61,36 +67,55 @@ fun MainScreen(
         viewModel.loadData()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        UserInfoCard(
-            uiState = vehicleState,
-            imageRes = R.drawable.ic_car,
-        )
-
-        CountryStickerCard(
-            uiState = vignettesState,
-            title = stringResource(R.string.national_stickers),
-            buttonText = stringResource(R.string.purchase),
-            onButtonClick = {
-                navController.navigate("confirm")
-            }
-        )
-
-        YearlyStickerCard(
-            title = stringResource(R.string.yearly_stickers),
-            onClick = {
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    "counties", Json.encodeToString(viewModel.selectedCountyInfo.value)
+    Scaffold(
+        topBar = {
+            HighwayStickerTopAppBar(
+                onButtonClick = {
+                    activity?.finish()
+                }
+            )
+        },
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                UserInfoCard(
+                    uiState = vehicleState,
+                    imageRes = R.drawable.ic_car,
                 )
-                navController.navigate("county_chooser")
+
+                CountryStickerCard(
+                    uiState = vignettesState,
+                    title = stringResource(R.string.national_stickers),
+                    buttonText = stringResource(R.string.purchase),
+                    onButtonClick = {
+                        navController.navigate("confirm")
+                    }
+                )
+
+                YearlyStickerCard(
+                    title = stringResource(R.string.yearly_stickers),
+                    onClick = {
+                        val vehicleInfo = (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
+                        if (vehicleInfo != null) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "vehicleInfo", Json.encodeToString(vehicleInfo)
+                            )
+                        }
+
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            "counties", Json.encodeToString(viewModel.selectedCountyInfo.value)
+                        )
+                        navController.navigate("county_chooser")
+                    }
+                )
             }
-        )
-    }
+        }
+    )
 }
 
 @Composable

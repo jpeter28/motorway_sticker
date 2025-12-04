@@ -28,10 +28,12 @@ import kotlinx.serialization.json.Json
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.peterj.motorwaysticker.R
+import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 
 @Composable
 fun CountyChooserScreen(
@@ -50,90 +52,109 @@ fun CountyChooserScreen(
 
     val info = viewModel.selectedVignetteInfo
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.yearly_stickers),
-                style = MaterialTheme.typography.titleLarge
+    Scaffold(
+        topBar = {
+            HighwayStickerTopAppBar(
+                onButtonClick = {
+                    navController.popBackStack()
+                }
             )
-        }
-        item {
-            Box(
+        },
+        content = { innerPadding ->
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .background(Color.LightGray, shape = RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(innerPadding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Placeholder")
-            }
-        }
-
-        if (info != null) {
-            items(info.countyNames) { name ->
-                CountyRowItem(
-                    name = name,
-                    price = info.cost,
-                    checked = viewModel.checkedStates[name] ?: false,
-                    onToggle = { viewModel.toggleCounty(name) }
-                )
-            }
-        }
-
-        item {
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                thickness = 1.dp,
-                color = Color.Gray.copy(alpha = 0.5f)
-            )
-        }
-
-        item {
-            Text(
-                text = stringResource(R.string.total_amount),
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-
-        item {
-            Text(
-                text = stringResource(R.string.formatted_price, viewModel.totalCost),
-                style = MaterialTheme.typography.displayLarge
-            )
-        }
-
-        item {
-            Button(
-                onClick = {
-                    navController.currentBackStackEntry?.savedStateHandle?.set(
-                        "selectedCounties", Json.encodeToString(
-                            SelectedVignetteInfo(
-                                countyNames = viewModel.getSelectedCounties(),
-                                cost = viewModel.selectedVignetteInfo?.cost ?: 0,
-                                transactionFee =  viewModel.selectedVignetteInfo?.transactionFee ?: 0,
-                            )
-                        )
+                item {
+                    Text(
+                        text = stringResource(R.string.yearly_stickers),
+                        style = MaterialTheme.typography.titleLarge
                     )
-                    navController.navigate("confirm")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.next),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                }
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .background(Color.LightGray, shape = RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Placeholder")
+                    }
+                }
+
+                if (info != null) {
+                    items(info.counties) { county ->
+                        CountyRowItem(
+                            name = county.name,
+                            price = info.cost,
+                            checked = viewModel.checkedStates[county] ?: false,
+                            onToggle = { viewModel.toggleCounty(county) }
+                        )
+                    }
+                }
+
+                item {
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        thickness = 1.dp,
+                        color = Color.Gray.copy(alpha = 0.5f)
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(R.string.total_amount),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(R.string.formatted_price, viewModel.totalCost),
+                        style = MaterialTheme.typography.displayLarge
+                    )
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "selectedCounties", Json.encodeToString(
+                                    SelectedVignetteInfo(
+                                        counties = viewModel.getSelectedCounties(),
+                                        cost = viewModel.selectedVignetteInfo?.cost ?: 0,
+                                        transactionFee =  viewModel.selectedVignetteInfo?.transactionFee ?: 0,
+                                    )
+                                )
+                            )
+                            val json = navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.get<String>("vehicleInfo")
+
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "vehicleInfo", json
+                            )
+                            navController.navigate("confirm")
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.next),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
             }
         }
-    }
+    )
 }
 
 @Composable

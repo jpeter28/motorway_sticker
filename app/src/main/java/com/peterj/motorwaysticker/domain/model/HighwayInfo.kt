@@ -1,5 +1,7 @@
 package com.peterj.motorwaysticker.domain.model
 
+import kotlinx.serialization.Serializable
+
 data class HighwayInfo(
     val vignettes: List<Vignette>,
     val vehicleCategories: List<VehicleCategory>,
@@ -25,6 +27,7 @@ data class VehicleName(
     val en: String
 )
 
+@Serializable
 data class CountyModel(
     val id: String,
     val name: String

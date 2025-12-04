@@ -12,5 +12,6 @@ enum class VignetteType(val resId: Int) {
     DAY(R.string.vignette_type_display_day),
     WEEK(R.string.vignette_type_display_week),
     MONTH(R.string.vignette_type_display_month),
+    YEAR(R.string.vignette_type_display_year),
     UNKNOWN(R.string.vignette_type_display_unknown);
 }

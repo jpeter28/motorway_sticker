@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SelectedVignetteInfo(
-    val countyNames: List<String>,
+    val counties: List<CountyModel>,
     val cost: Int,
     val transactionFee: Int
 )

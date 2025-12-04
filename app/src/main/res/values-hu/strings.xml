@@ -5,10 +5,18 @@
     <string name="yearly_stickers">Éves vármegyei matricák</string>
     <string name="no_data_available">Nincs elérhető adat</string>
     <string name="next">Tovább</string>
+    <string name="cancel">Mégsem</string>
+    <string name="confirm">Rendben</string>
     <string name="total_amount">Fizetendő összeg</string>
+    <string name="confirm_order">Vásárlás megerősítése</string>
+    <string name="plate_number">Rendszám</string>
+    <string name="sticker_type">Matrica típusa</string>
+    <string name="sticker_successful">A matricákat sikeresen kifizetted!</string>
+    <string name="transaction_fee">Rendszerhasználati díj</string>
     <string name="formatted_price">%1$d Ft</string>
     <string name="vignette_type_display_day">napi (1 napos)</string>
     <string name="vignette_type_display_week">heti (10 napos)</string>
     <string name="vignette_type_display_month">havi</string>
+    <string name="vignette_type_display_year">éves</string>
     <string name="vignette_type_display_unknown">Ismeretlen</string>
 </resources>

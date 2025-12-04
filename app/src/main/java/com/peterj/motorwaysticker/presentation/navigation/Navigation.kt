@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.peterj.motorwaysticker.presentation.features.confirm.ConfirmScreen
+import com.peterj.motorwaysticker.presentation.features.confirm_order.ConfirmScreen
 import com.peterj.motorwaysticker.presentation.features.main.MainScreen
 import com.peterj.motorwaysticker.presentation.features.success.SuccessScreen
 import com.peterj.motorwaysticker.presentation.features.county_chooser.CountyChooserScreen
@@ -32,7 +32,7 @@ fun Navigation(navController: NavHostController, modifier: Modifier = Modifier) 
         composable(
             "success",
         ) {
-            SuccessScreen()
+            SuccessScreen(navController)
         }
     }
 }

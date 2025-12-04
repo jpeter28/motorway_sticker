@@ -93,7 +93,7 @@ class MainViewModel @Inject constructor(
 
         return if (vignette != null) {
             SelectedVignetteInfo(
-                countyNames = highwayInfo.counties.map { it.name },
+                counties = highwayInfo.counties,
                 cost = vignette.cost,
                 transactionFee = vignette.transactionFee
             )
