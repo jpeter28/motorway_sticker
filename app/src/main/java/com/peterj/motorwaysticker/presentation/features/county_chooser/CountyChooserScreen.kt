@@ -28,7 +28,11 @@ import kotlinx.serialization.json.Json
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.peterj.motorwaysticker.R
@@ -36,6 +40,7 @@ import com.peterj.motorwaysticker.domain.model.CountyModel
 import com.peterj.motorwaysticker.domain.model.VignetteDetail
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 import com.peterj.motorwaysticker.presentation.navigation.Route
+import kotlinx.coroutines.launch
 
 @Composable
 fun CountyChooserScreen(
@@ -61,8 +66,13 @@ fun CountyChooserScreen(
     }
 
     val counties = viewModel.counties
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             HighwayStickerTopAppBar(
                 onButtonClick = {
@@ -135,26 +145,32 @@ fun CountyChooserScreen(
                 item {
                     Button(
                         onClick = {
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "selectedCounties", Json.encodeToString(
-                                    viewModel.getSelectedCounties()
+                            if (viewModel.areSelectedCountiesConnected()) {
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "selectedCounties", Json.encodeToString(
+                                        viewModel.getSelectedCounties()
+                                    )
                                 )
-                            )
-                            val vehicleJson = navController.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.get<String>("vehicleInfo")
+                                val vehicleJson = navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.get<String>("vehicleInfo")
 
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "vehicleInfo", vehicleJson
-                            )
-
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "selectedVignette", Json.encodeToString(
-                                    viewModel.selectedVignette
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "vehicleInfo", vehicleJson
                                 )
-                            )
 
-                            navController.navigate(Route.ConfirmOrder.route)
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "selectedVignette", Json.encodeToString(
+                                        viewModel.selectedVignette
+                                    )
+                                )
+                                navController.navigate(Route.ConfirmOrder.route)
+
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Selected counties are not connected!")
+                                }
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp)

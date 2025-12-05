@@ -7,11 +7,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.peterj.motorwaysticker.domain.model.CountyModel
 import com.peterj.motorwaysticker.domain.model.VignetteDetail
+import com.peterj.motorwaysticker.domain.usecase.AreCountiesConnectedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class CountyChooserViewModel @Inject constructor() : ViewModel() {
+class CountyChooserViewModel @Inject constructor(
+    private val areCountiesConnectedUseCase: AreCountiesConnectedUseCase,
+) : ViewModel() {
     var counties by mutableStateOf<List<CountyModel>?>(null)
     var selectedVignette by mutableStateOf<VignetteDetail?>(null)
 
@@ -28,4 +31,8 @@ class CountyChooserViewModel @Inject constructor() : ViewModel() {
 
     fun getSelectedCounties(): List<CountyModel> =
         _checkedStates.filterValues { it }.keys.toList()
+
+    fun areSelectedCountiesConnected(): Boolean {
+        return areCountiesConnectedUseCase.execute(getSelectedCounties().map { it.name })
+    }
 }
