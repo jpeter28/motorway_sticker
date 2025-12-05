@@ -1,13 +1,18 @@
 package com.peterj.highwayvignette.presentation.features.county_chooser
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
@@ -31,17 +36,22 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import com.peterj.highwayvignette.R
 import com.peterj.highwayvignette.domain.model.CountyModel
 import com.peterj.highwayvignette.domain.model.VignetteDetail
+import com.peterj.highwayvignette.domain.model.countiesList
+import com.peterj.highwayvignette.domain.model.countyDrawables
 import com.peterj.highwayvignette.presentation.common.components.HighwayVignetteDivider
 import com.peterj.highwayvignette.presentation.common.components.HighwayVignetteSnackbarHost
 import com.peterj.highwayvignette.presentation.common.components.HighwayVignetteTopAppBar
 import com.peterj.highwayvignette.presentation.navigation.Route
 import com.peterj.highwayvignette.presentation.theme.greyColor
+import com.peterj.highwayvignette.presentation.theme.topBarColor
 import kotlinx.coroutines.launch
 
 @Composable
@@ -99,16 +109,11 @@ fun CountyChooserScreen(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
+
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .background(Color.LightGray, shape = RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Placeholder")
-                    }
+                    Map(
+                        checkedStates = viewModel.checkedStates,
+                    )
                 }
 
                 if (counties != null) {
@@ -229,4 +234,50 @@ fun CountyRowItem(
             overflow = TextOverflow.Ellipsis,
         )
     }
+}
+
+//TODO proper sizing for counties
+@Composable
+fun Map(
+    checkedStates: Map<CountyModel, Boolean>,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1.4f)
+    ) {
+        countiesList.forEach { county ->
+            val countyModel =
+                checkedStates.keys.firstOrNull { it.id.equals(county.fileName, ignoreCase = true) }
+            val isChecked = countyModel?.let { checkedStates[it] } == true
+
+            County(
+                fileResource = countyDrawables[county.fileName] ?: R.drawable.year_0,
+                left = county.left,
+                top = county.top,
+                width = county.width,
+                height = county.height,
+                isSelected = isChecked,
+            )
+        }
+    }
+}
+
+@Composable
+fun County(
+    fileResource: Int,
+    left: Float,
+    top: Float,
+    width: Float,
+    height: Float,
+    isSelected: Boolean = false,
+) {
+    Image(
+        painter = painterResource(fileResource),
+        contentDescription = null,
+        modifier = Modifier
+            .absoluteOffset(left.dp, top.dp)
+            .size(width.dp, height.dp),
+        colorFilter = if (isSelected) ColorFilter.tint(topBarColor) else null
+    )
 }
