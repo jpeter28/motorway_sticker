@@ -31,6 +31,7 @@ fun <T> UiStateWrapper(
             val message = when (val err = state.error) {
                 is HighwayVignetteError.NetworkError -> stringResource(R.string.error_network)
                 is HighwayVignetteError.Unknown -> err.message ?: stringResource(R.string.error_unknown)
+                is HighwayVignetteError.ServerError -> stringResource(R.string.error_server)
             }
             error(message)
         }

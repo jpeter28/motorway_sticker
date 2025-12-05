@@ -18,6 +18,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,7 +48,7 @@ class ConfirmOrderViewModel @Inject constructor(
                     if (selectedCounties.isNullOrEmpty()) {
                         return@launch
                     }
-                    val orderResult =postHighwayOrderUseCase.execute(
+                    val orderResult = postHighwayOrderUseCase.execute(
                         selectedCounties.map {
                             HighwayOrder(
                                 type = it.id,
@@ -58,14 +60,20 @@ class ConfirmOrderViewModel @Inject constructor(
                     _orderState.value = UiState.Success(orderResult)
                 } else {
                     val orderResult = postHighwayOrderUseCase.execute(
-                        listOf( HighwayOrder(
-                            type = vignetteInfo.vignetteType.name,
-                            category = vehicleInfo?.type ?: "",
-                            cost = vignetteInfo.cost,
-                        ))
+                        listOf(
+                            HighwayOrder(
+                                type = vignetteInfo.vignetteType.name,
+                                category = vehicleInfo?.type ?: "",
+                                cost = vignetteInfo.cost,
+                            )
+                        )
                     )
                     _orderState.value = UiState.Success(orderResult)
                 }
+            } catch (e: HttpException) {
+                _orderState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
+            } catch (e: IOException) {
+                _orderState.value = UiState.Error(HighwayVignetteError.NetworkError)
             } catch (e: Exception) {
                 _orderState.value = UiState.Error(HighwayVignetteError.Unknown(e.message))
             }

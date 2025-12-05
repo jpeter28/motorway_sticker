@@ -93,18 +93,20 @@ fun MainScreen(
                     title = stringResource(R.string.national_vignette),
                     buttonText = stringResource(R.string.purchase),
                     onButtonClick = {
-                        val vehicleInfo =
-                            (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
-                        if (vehicleInfo != null) {
+                        if (viewModel.selectedVignette.value != null) {
+                            val vehicleInfo =
+                                (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
+                            if (vehicleInfo != null) {
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "vehicleInfo", Json.encodeToString(vehicleInfo)
+                                )
+                            }
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "vehicleInfo", Json.encodeToString(vehicleInfo)
+                                "selectedVignette",
+                                Json.encodeToString(viewModel.selectedVignette.value)
                             )
+                            navController.navigate(Route.ConfirmOrder.route)
                         }
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            "selectedVignette",
-                            Json.encodeToString(viewModel.selectedVignette.value)
-                        )
-                        navController.navigate(Route.ConfirmOrder.route)
                     }
                 )
 

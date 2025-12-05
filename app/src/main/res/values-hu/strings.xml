@@ -23,4 +23,5 @@
     <string name="counties_not_connected">A kiválasztott megyék között nincs közvetlen kapcsolat!</string>
     <string name="error_unknown">Ismeretlen hiba</string>
     <string name="error_network">Hálózati hiba</string>
+    <string name="error_server">Szerveroldali hiba</string>
 </resources>

@@ -15,6 +15,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,6 +51,14 @@ class MainViewModel @Inject constructor(
 
         val vehicleInfo = try {
             getVehicleInfoUseCase.execute()
+        } catch (e: HttpException) {
+            _vehicleInfoState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
+            _vignettesState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
+            return@launch
+        } catch (e: IOException) {
+            _vehicleInfoState.value = UiState.Error(HighwayVignetteError.NetworkError)
+            _vignettesState.value = UiState.Error(HighwayVignetteError.NetworkError)
+            return@launch
         } catch (e: Exception) {
             _vehicleInfoState.value = UiState.Error(HighwayVignetteError.Unknown(e.message))
             _vignettesState.value = UiState.Error(HighwayVignetteError.Unknown(e.message))
@@ -58,6 +68,12 @@ class MainViewModel @Inject constructor(
 
         val highwayInfo = try {
             getHighwayInfoUseCase.execute()
+        } catch (e: HttpException) {
+            _vignettesState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
+            return@launch
+        } catch (e: IOException) {
+            _vignettesState.value = UiState.Error(HighwayVignetteError.NetworkError)
+            return@launch
         } catch (e: Exception) {
             _vignettesState.value = UiState.Error(HighwayVignetteError.Unknown(e.message))
             return@launch
