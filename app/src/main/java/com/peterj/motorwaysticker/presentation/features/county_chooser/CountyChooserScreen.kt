@@ -28,7 +28,6 @@ import kotlinx.serialization.json.Json
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -38,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.peterj.motorwaysticker.R
 import com.peterj.motorwaysticker.domain.model.CountyModel
 import com.peterj.motorwaysticker.domain.model.VignetteDetail
+import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerSnackbarHost
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 import com.peterj.motorwaysticker.presentation.navigation.Route
 import kotlinx.coroutines.launch
@@ -71,7 +71,9 @@ fun CountyChooserScreen(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            HighwayStickerSnackbarHost(
+                hostState = snackbarHostState,
+            )
         },
         topBar = {
             HighwayStickerTopAppBar(

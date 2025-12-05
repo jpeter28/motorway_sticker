@@ -15,7 +15,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +34,7 @@ import com.peterj.motorwaysticker.domain.model.CountyModel
 import com.peterj.motorwaysticker.domain.model.VignetteDetail
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
 import com.peterj.motorwaysticker.domain.model.VignetteType
+import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerSnackbarHost
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 import com.peterj.motorwaysticker.presentation.common.components.UiStateWrapper
 import com.peterj.motorwaysticker.presentation.navigation.Route
@@ -81,7 +81,9 @@ fun ConfirmScreen(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            HighwayStickerSnackbarHost(
+                hostState = snackbarHostState,
+            )
         },
         topBar = {
             HighwayStickerTopAppBar(
@@ -127,7 +129,10 @@ fun ConfirmScreen(
                             text = stringResource(R.string.plate_number),
                             style = MaterialTheme.typography.bodySmall
                         )
-                        Text(text = viewModel.vehicleInfo?.plate ?: "", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            text = viewModel.vehicleInfo?.plate ?: "",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
 
@@ -142,8 +147,13 @@ fun ConfirmScreen(
                             text = stringResource(R.string.sticker_type),
                             style = MaterialTheme.typography.bodySmall
                         )
-                        Text(text = stringResource(viewModel.selectedVignette?.vignetteType?.resId ?: R.string.vignette_type_display_unknown),
-                            style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            text = stringResource(
+                                viewModel.selectedVignette?.vignetteType?.resId
+                                    ?: R.string.vignette_type_display_unknown
+                            ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
 
@@ -164,9 +174,17 @@ fun ConfirmScreen(
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = stringResource(viewModel.selectedVignette?.vignetteType?.resId ?: R.string.vignette_type_display_unknown), style = MaterialTheme.typography.titleSmall)
                             Text(
-                                text = stringResource(R.string.formatted_price, viewModel.selectedVignette?.cost ?: 0),
+                                text = stringResource(
+                                    viewModel.selectedVignette?.vignetteType?.resId
+                                        ?: R.string.vignette_type_display_unknown
+                                ), style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.formatted_price,
+                                    viewModel.selectedVignette?.cost ?: 0
+                                ),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -203,7 +221,10 @@ fun ConfirmScreen(
                         ) {
                             Text(text = county.name, style = MaterialTheme.typography.titleSmall)
                             Text(
-                                text = stringResource(R.string.formatted_price, viewModel.selectedVignette?.cost ?: 0),
+                                text = stringResource(
+                                    R.string.formatted_price,
+                                    viewModel.selectedVignette?.cost ?: 0
+                                ),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
