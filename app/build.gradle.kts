@@ -11,11 +11,11 @@ plugins {
 }
 
 android {
-    namespace = "com.peterj.motorwaysticker"
+    namespace = "com.peterj.highwayvignette"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.peterj.motorwaysticker"
+        applicationId = "com.peterj.highwayvignette"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

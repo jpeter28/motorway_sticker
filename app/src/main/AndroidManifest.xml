@@ -12,11 +12,11 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MotorwaySticker">
+        android:theme="@style/Theme.HighwayVignette">
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.MotorwaySticker">
+            android:theme="@style/Theme.HighwayVignette">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

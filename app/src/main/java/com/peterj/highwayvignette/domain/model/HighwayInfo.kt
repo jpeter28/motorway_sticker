@@ -1,0 +1,34 @@
+package com.peterj.highwayvignette.domain.model
+
+import kotlinx.serialization.Serializable
+
+data class HighwayInfo(
+    val vignettes: List<Vignette>,
+    val vehicleCategories: List<VehicleCategory>,
+    val counties: List<CountyModel>
+)
+
+data class Vignette(
+    val types: List<String>,
+    val vehicleCategory: String,
+    val cost: Int,
+    val transactionFee: Int,
+    val total: Int
+)
+
+data class VehicleCategory(
+    val category: String,
+    val vignetteCategory: String,
+    val name: VehicleName,
+)
+
+data class VehicleName(
+    val hu: String,
+    val en: String
+)
+
+@Serializable
+data class CountyModel(
+    val id: String,
+    val name: String
+)
