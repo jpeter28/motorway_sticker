@@ -4,10 +4,11 @@ import com.peterj.motorwaysticker.R
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SelectVignette(
+data class VignetteDetail(
     val vignetteCategory: String,
     val vignetteType: VignetteType,
     val cost: Int,
+    val transactionFee: Int,
 )
 
 enum class VignetteType(val resId: Int) {

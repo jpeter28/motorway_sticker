@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.peterj.motorwaysticker.R
+import com.peterj.motorwaysticker.presentation.navigation.Route
 import com.peterj.motorwaysticker.presentation.theme.topBarColor
 
 @Preview
@@ -72,7 +73,7 @@ fun SuccessScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = {
-                            navController.navigate("main")
+                            navController.navigate(Route.Main.route)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

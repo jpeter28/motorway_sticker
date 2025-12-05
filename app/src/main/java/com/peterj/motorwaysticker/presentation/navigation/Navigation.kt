@@ -1,5 +1,7 @@
 package com.peterj.motorwaysticker.presentation.navigation
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -12,26 +14,25 @@ import com.peterj.motorwaysticker.presentation.features.county_chooser.CountyCho
 
 @Composable
 fun Navigation(navController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(navController, startDestination = "main", modifier = modifier) {
-        composable("main") {
+    NavHost(
+        navController,
+        startDestination = Route.Main.route,
+        modifier = modifier,
+        enterTransition = { slideInHorizontally { it } },
+        exitTransition = { slideOutHorizontally { -it } },
+        popEnterTransition = { slideInHorizontally { -it } },
+        popExitTransition = { slideOutHorizontally { it } }
+    ) {
+        composable(Route.Main.route) {
             MainScreen(navController)
         }
-
-        composable(
-            "county_chooser",
-        ) {
+        composable(Route.CountyChooser.route) {
             CountyChooserScreen(navController)
         }
-
-        composable(
-            "confirm",
-        ) {
+        composable(Route.ConfirmOrder.route) {
             ConfirmScreen(navController)
         }
-
-        composable(
-            "success",
-        ) {
+        composable(Route.Success.route) {
             SuccessScreen(navController)
         }
     }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -23,9 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.peterj.motorwaysticker.domain.model.SelectedVignetteInfo
 import kotlinx.serialization.json.Json
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -33,7 +32,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.peterj.motorwaysticker.R
+import com.peterj.motorwaysticker.domain.model.CountyModel
+import com.peterj.motorwaysticker.domain.model.VignetteDetail
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
+import com.peterj.motorwaysticker.presentation.navigation.Route
 
 @Composable
 fun CountyChooserScreen(
@@ -41,16 +43,24 @@ fun CountyChooserScreen(
     viewModel: CountyChooserViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
-        val json = navController.previousBackStackEntry
+        val countiesJson = navController.previousBackStackEntry
             ?.savedStateHandle
             ?.get<String>("counties")
 
-        viewModel.selectedVignetteInfo = json?.let {
-            Json.decodeFromString<SelectedVignetteInfo>(it)
+        viewModel.counties = countiesJson?.let {
+            Json.decodeFromString<List<CountyModel>>(it)
+        }
+
+        val selectedVignetteJson = navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.get<String>("selectedVignette")
+
+        viewModel.selectedVignette = selectedVignetteJson?.let {
+            Json.decodeFromString<VignetteDetail>(it)
         }
     }
 
-    val info = viewModel.selectedVignetteInfo
+    val counties = viewModel.counties
 
     Scaffold(
         topBar = {
@@ -87,11 +97,11 @@ fun CountyChooserScreen(
                     }
                 }
 
-                if (info != null) {
-                    items(info.counties) { county ->
+                if (counties != null) {
+                    items(counties) { county ->
                         CountyRowItem(
                             name = county.name,
-                            price = info.cost,
+                            price = viewModel.selectedVignette?.cost ?: 0,
                             checked = viewModel.checkedStates[county] ?: false,
                             onToggle = { viewModel.toggleCounty(county) }
                         )
@@ -127,11 +137,7 @@ fun CountyChooserScreen(
                         onClick = {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "selectedCounties", Json.encodeToString(
-                                    SelectedVignetteInfo(
-                                        counties = viewModel.getSelectedCounties(),
-                                        cost = viewModel.selectedVignetteInfo?.cost ?: 0,
-                                        transactionFee =  viewModel.selectedVignetteInfo?.transactionFee ?: 0,
-                                    )
+                                    viewModel.getSelectedCounties()
                                 )
                             )
                             val vehicleJson = navController.previousBackStackEntry
@@ -142,15 +148,13 @@ fun CountyChooserScreen(
                                 "vehicleInfo", vehicleJson
                             )
 
-                            val selectedVignetteJson = navController.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.get<String>("selectedVignette")
-
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "selectedVignette", selectedVignetteJson
+                                "selectedVignette", Json.encodeToString(
+                                    viewModel.selectedVignette
+                                )
                             )
 
-                            navController.navigate("confirm")
+                            navController.navigate(Route.ConfirmOrder.route)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp)

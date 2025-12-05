@@ -27,7 +27,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,12 +43,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.peterj.motorwaysticker.R
-import com.peterj.motorwaysticker.domain.model.SelectVignette
+import com.peterj.motorwaysticker.domain.model.VignetteDetail
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
 import com.peterj.motorwaysticker.domain.model.VignetteType
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 import com.peterj.motorwaysticker.presentation.common.components.UiStateWrapper
 import com.peterj.motorwaysticker.presentation.common.state.UiState
+import com.peterj.motorwaysticker.presentation.navigation.Route
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -62,10 +62,6 @@ fun MainScreen(
     val vehicleState by viewModel.vehicleInfoState.collectAsState()
     val vignettesState by viewModel.vignettesState.collectAsState()
     val selectedVignette by viewModel.selectedVignette.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.loadData()
-    }
 
     Scaffold(
         topBar = {
@@ -106,7 +102,7 @@ fun MainScreen(
                             "selectedVignette",
                             Json.encodeToString(viewModel.selectedVignette.value)
                         )
-                        navController.navigate("confirm")
+                        navController.navigate(Route.ConfirmOrder.route)
                     }
                 )
 
@@ -132,9 +128,9 @@ fun MainScreen(
                             )
 
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "counties", Json.encodeToString(viewModel.selectedCountyInfo.value)
+                                "counties", Json.encodeToString(viewModel.counties)
                             )
-                            navController.navigate("county_chooser")
+                            navController.navigate(Route.CountyChooser.route)
                         }
                     )
                 }
@@ -206,8 +202,8 @@ fun UserInfoCard(
 
 @Composable
 fun CountryStickerCard(
-    uiState: UiState<List<SelectVignette>>,
-    selectedVignette: SelectVignette?,
+    uiState: UiState<List<VignetteDetail>>,
+    selectedVignette: VignetteDetail?,
     viewModel: MainViewModel,
     modifier: Modifier = Modifier,
     title: String,

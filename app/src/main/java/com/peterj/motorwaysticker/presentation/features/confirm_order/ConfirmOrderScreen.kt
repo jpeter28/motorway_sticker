@@ -31,11 +31,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.peterj.motorwaysticker.R
-import com.peterj.motorwaysticker.domain.model.SelectVignette
-import com.peterj.motorwaysticker.domain.model.SelectedVignetteInfo
+import com.peterj.motorwaysticker.domain.model.CountyModel
+import com.peterj.motorwaysticker.domain.model.VignetteDetail
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
+import com.peterj.motorwaysticker.domain.model.VignetteType
 import com.peterj.motorwaysticker.presentation.common.components.HighwayStickerTopAppBar
 import com.peterj.motorwaysticker.presentation.common.components.UiStateWrapper
+import com.peterj.motorwaysticker.presentation.navigation.Route
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -49,8 +51,8 @@ fun ConfirmScreen(
             ?.savedStateHandle
             ?.get<String>("selectedCounties")
 
-        val info: SelectedVignetteInfo? = jsonSelectedCounties?.let {
-            Json.decodeFromString<SelectedVignetteInfo>(it)
+        viewModel.counties = jsonSelectedCounties?.let {
+            Json.decodeFromString<List<CountyModel>>(it)
         }
 
         val vehicleInfoJson: String? = navController.previousBackStackEntry
@@ -65,16 +67,15 @@ fun ConfirmScreen(
             ?.savedStateHandle
             ?.get<String>("selectedVignette")
 
-        val selectedVignette: SelectVignette? = selectedVignetteJson?.let {
-            Json.decodeFromString<SelectVignette>(it)
+        val selectedVignette: VignetteDetail? = selectedVignetteJson?.let {
+            Json.decodeFromString<VignetteDetail>(it)
         }
 
-        viewModel.selectedVignetteInfo = info
         viewModel.vehicleInfo = vehicleInfo
         viewModel.selectedVignette = selectedVignette
     }
 
-    val info = viewModel.selectedVignetteInfo
+    val counties = viewModel.counties
     val orderState by viewModel.orderState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -156,16 +157,16 @@ fun ConfirmScreen(
                     )
                 }
 
-                if (info != null) {
-                    items(info.counties) { county ->
+                if (viewModel.selectedVignette?.vignetteType != VignetteType.YEAR && viewModel.selectedVignette?.vignetteType != VignetteType.UNKNOWN) {
+                    item {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = county.name, style = MaterialTheme.typography.titleSmall)
+                            Text(text = stringResource(viewModel.selectedVignette?.vignetteType?.resId ?: R.string.vignette_type_display_unknown), style = MaterialTheme.typography.titleSmall)
                             Text(
-                                text = stringResource(R.string.formatted_price, info.cost),
+                                text = stringResource(R.string.formatted_price, viewModel.selectedVignette?.cost ?: 0),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -185,7 +186,44 @@ fun ConfirmScreen(
                             Text(
                                 text = stringResource(
                                     R.string.formatted_price,
-                                    info.transactionFee
+                                    viewModel.selectedVignette?.transactionFee ?: 0
+                                ),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+
+                if (counties != null) {
+                    items(counties) { county ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(text = county.name, style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                text = stringResource(R.string.formatted_price, viewModel.selectedVignette?.cost ?: 0),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(R.string.transaction_fee),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.formatted_price,
+                                    viewModel.selectedVignette?.transactionFee ?: 0
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -255,7 +293,7 @@ fun ConfirmScreen(
                 state = orderState,
                 success = {
                     LaunchedEffect(Unit) {
-                        navController.navigate("success")
+                        navController.navigate(Route.Success.route)
                     }
                 },
                 error = { message ->

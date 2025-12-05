@@ -6,19 +6,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.peterj.motorwaysticker.domain.model.CountyModel
-import com.peterj.motorwaysticker.domain.model.SelectedVignetteInfo
+import com.peterj.motorwaysticker.domain.model.VignetteDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class CountyChooserViewModel @Inject constructor() : ViewModel() {
-    var selectedVignetteInfo by mutableStateOf<SelectedVignetteInfo?>(null)
+    var counties by mutableStateOf<List<CountyModel>?>(null)
+    var selectedVignette by mutableStateOf<VignetteDetail?>(null)
 
     private var _checkedStates = mutableStateMapOf<CountyModel, Boolean>()
     var checkedStates = _checkedStates
 
     val totalCost: Int
-        get() = _checkedStates.values.count { it } * (selectedVignetteInfo?.cost ?: 0)
+        get() = _checkedStates.values.count { it } * (selectedVignette?.cost ?: 0)
 
     fun toggleCounty(county: CountyModel) {
         val current = _checkedStates[county] ?: false

@@ -2,14 +2,14 @@ package com.peterj.motorwaysticker.presentation.features.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.peterj.motorwaysticker.domain.model.CountyModel
 import com.peterj.motorwaysticker.domain.model.HighwayInfo
-import com.peterj.motorwaysticker.domain.model.SelectVignette
+import com.peterj.motorwaysticker.domain.model.VignetteDetail
 import com.peterj.motorwaysticker.domain.model.VehicleInfo
 import com.peterj.motorwaysticker.domain.model.VignetteType
 import com.peterj.motorwaysticker.domain.usecase.GetHighwayInfoUseCase
 import com.peterj.motorwaysticker.domain.usecase.GetVehicleInfoUseCase
 import com.peterj.motorwaysticker.presentation.common.state.UiState
-import com.peterj.motorwaysticker.domain.model.SelectedVignetteInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,17 +25,24 @@ class MainViewModel @Inject constructor(
     private val _vehicleInfoState = MutableStateFlow<UiState<VehicleInfo>>(UiState.Empty)
     val vehicleInfoState: StateFlow<UiState<VehicleInfo>> = _vehicleInfoState
 
-    private val _vignettesState = MutableStateFlow<UiState<List<SelectVignette>>>(UiState.Empty)
-    val vignettesState: StateFlow<UiState<List<SelectVignette>>> = _vignettesState
+    private val _vignettesState = MutableStateFlow<UiState<List<VignetteDetail>>>(UiState.Empty)
+    val vignettesState: StateFlow<UiState<List<VignetteDetail>>> = _vignettesState
 
-    private val _selectedCountyInfo = MutableStateFlow<SelectedVignetteInfo?>(null)
-    val selectedCountyInfo: StateFlow<SelectedVignetteInfo?> = _selectedCountyInfo
+    private val _selectedVignette = MutableStateFlow<VignetteDetail?>(null)
+    val selectedVignette: StateFlow<VignetteDetail?> = _selectedVignette
 
-    private val _selectedVignette = MutableStateFlow<SelectVignette?>(null)
-    val selectedVignette: StateFlow<SelectVignette?> = _selectedVignette
+    private val _counties: MutableList<CountyModel> = mutableListOf()
+    val counties: MutableList<CountyModel> = _counties
 
+    init {
+        loadData()
+    }
 
-    fun loadData() = viewModelScope.launch {
+    fun selectVignette(selectVignette: VignetteDetail) {
+        _selectedVignette.value = selectVignette
+    }
+
+    private fun loadData() = viewModelScope.launch {
         _vehicleInfoState.value = UiState.Loading
         _vignettesState.value = UiState.Loading
 
@@ -62,50 +69,38 @@ class MainViewModel @Inject constructor(
         )
 
         _vignettesState.value = UiState.Success(uiList)
-        _selectedCountyInfo.value = getCounties(highwayInfo)
-    }
-
-    fun selectVignette(selectVignette: SelectVignette) {
-        _selectedVignette.value = selectVignette
+        _counties.addAll(getCounties(highwayInfo))
     }
 
     private fun filterVignettes(
         highwayInfo: HighwayInfo,
         userVehicleCategory: String,
         userVehicleVignetteType: String
-    ): List<SelectVignette> {
+    ): List<VignetteDetail> {
         return highwayInfo.vignettes
             .filter { it.vehicleCategory == userVehicleCategory }
-//            .filter { vignette ->
-//                vignette.types.none { type ->
-//                    type == "YEAR" || type.startsWith("YEAR_")
-//                } || vignette.types.isEmpty()
-//            }
             .map {
-                SelectVignette(
+                VignetteDetail(
                     vignetteCategory = userVehicleVignetteType,
                     vignetteType = VignetteType.fromString(it.types.first()),
                     cost = it.cost,
+                    transactionFee = it.transactionFee,
                 )
             }
     }
 
     private fun getCounties(
         highwayInfo: HighwayInfo,
-    ): SelectedVignetteInfo {
+    ): List<CountyModel> {
         val vignette =  highwayInfo.vignettes
             .firstOrNull { vignette ->
                 vignette.types.containsAll(highwayInfo.counties.map { it.id })
             }
 
         return if (vignette != null) {
-            SelectedVignetteInfo(
-                counties = highwayInfo.counties,
-                cost = vignette.cost,
-                transactionFee = vignette.transactionFee
-            )
+            highwayInfo.counties
         } else {
-            SelectedVignetteInfo(emptyList(), 0, 0)
+            emptyList()
         }
     }
 }
