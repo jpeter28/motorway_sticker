@@ -44,39 +44,26 @@ fun ConfirmScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: ConfirmOrderViewModel = hiltViewModel()
 ) {
-
-    LaunchedEffect(Unit) {
-        val jsonSelectedCounties = navController.previousBackStackEntry
-            ?.savedStateHandle
-            ?.get<String>("selectedCounties")
-
-        viewModel.counties = jsonSelectedCounties?.let {
-            Json.decodeFromString<List<CountyModel>>(it)
-        }
-
-        val vehicleInfoJson: String? = navController.previousBackStackEntry
-            ?.savedStateHandle
-            ?.get<String>("vehicleInfo")
-
-        val vehicleInfo: VehicleInfo? = vehicleInfoJson?.let {
-            Json.decodeFromString<VehicleInfo>(it)
-        }
-
-        val selectedVignetteJson: String? = navController.previousBackStackEntry
-            ?.savedStateHandle
-            ?.get<String>("selectedVignette")
-
-        val selectedVignette: VignetteDetail? = selectedVignetteJson?.let {
-            Json.decodeFromString<VignetteDetail>(it)
-        }
-
-        viewModel.vehicleInfo = vehicleInfo
-        viewModel.selectedVignette = selectedVignette
-    }
-
     val counties = viewModel.counties
     val orderState by viewModel.orderState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        navController.previousBackStackEntry?.savedStateHandle?.let { state ->
+            val jsonSelectedCounties = state.get<String>("selectedCounties")
+            viewModel.counties = jsonSelectedCounties?.let {
+                Json.decodeFromString<List<CountyModel>>(it)
+            }
+            val vehicleInfoJson = state.get<String>("vehicleInfo")
+            viewModel.vehicleInfo = vehicleInfoJson?.let {
+                Json.decodeFromString<VehicleInfo>(it)
+            }
+            val selectedVignetteJson = state.get<String>("selectedVignette")
+            viewModel.selectedVignette = selectedVignetteJson?.let {
+                Json.decodeFromString<VignetteDetail>(it)
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = {
@@ -154,7 +141,8 @@ fun ConfirmScreen(
                     HighwayVignetteDivider()
                 }
 
-                if (viewModel.selectedVignette?.vignetteType != VignetteType.YEAR && viewModel.selectedVignette?.vignetteType != VignetteType.UNKNOWN) {
+                if (viewModel.selectedVignette?.vignetteType != VignetteType.YEAR &&
+                    viewModel.selectedVignette?.vignetteType != VignetteType.UNKNOWN) {
                     item {
                         Row(
                             modifier = Modifier

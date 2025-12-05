@@ -59,27 +59,22 @@ fun CountyChooserScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: CountyChooserViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(Unit) {
-        val countiesJson = navController.previousBackStackEntry
-            ?.savedStateHandle
-            ?.get<String>("counties")
-
-        viewModel.counties = countiesJson?.let {
-            Json.decodeFromString<List<CountyModel>>(it)
-        }
-
-        val selectedVignetteJson = navController.previousBackStackEntry
-            ?.savedStateHandle
-            ?.get<String>("selectedVignette")
-
-        viewModel.selectedVignette = selectedVignetteJson?.let {
-            Json.decodeFromString<VignetteDetail>(it)
-        }
-    }
-
     val counties = viewModel.counties
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        navController.previousBackStackEntry?.savedStateHandle?.let { state ->
+            val jsonCounties = state.get<String>("counties")
+            viewModel.counties = jsonCounties?.let {
+                Json.decodeFromString<List<CountyModel>>(it)
+            }
+            val jsonSelectedVignette = state.get<String>("selectedVignette")
+            viewModel.selectedVignette = jsonSelectedVignette?.let {
+                Json.decodeFromString<VignetteDetail>(it)
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = {
@@ -151,26 +146,26 @@ fun CountyChooserScreen(
                     Button(
                         onClick = {
                             if (viewModel.areSelectedCountiesConnected()) {
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "selectedCounties", Json.encodeToString(
-                                        viewModel.getSelectedCounties()
-                                    )
-                                )
                                 val vehicleJson = navController.previousBackStackEntry
                                     ?.savedStateHandle
                                     ?.get<String>("vehicleInfo")
-
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "vehicleInfo", vehicleJson
-                                )
-
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "selectedVignette", Json.encodeToString(
-                                        viewModel.selectedVignette
+                                navController.currentBackStackEntry?.savedStateHandle?.let { state ->
+                                    state.set(
+                                        "selectedCounties", Json.encodeToString(
+                                            viewModel.getSelectedCounties()
+                                        )
                                     )
-                                )
-                                navController.navigate(Route.ConfirmOrder.route)
+                                    state.set(
+                                        "selectedVignette", Json.encodeToString(
+                                            viewModel.selectedVignette
+                                        )
+                                    )
+                                    state.set(
+                                        "vehicleInfo", vehicleJson
+                                    )
+                                }
 
+                                navController.navigate(Route.ConfirmOrder.route)
                             } else {
                                 scope.launch {
                                     snackbarHostState.showSnackbar(notConnectedErrorMessage)
