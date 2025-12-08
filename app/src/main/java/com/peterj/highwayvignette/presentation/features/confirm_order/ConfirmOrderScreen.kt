@@ -26,42 +26,33 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.peterj.highwayvignette.R
-import com.peterj.highwayvignette.domain.model.CountyModel
-import com.peterj.highwayvignette.domain.model.VignetteDetail
-import com.peterj.highwayvignette.domain.model.VehicleInfo
 import com.peterj.highwayvignette.domain.model.VignetteType
 import com.peterj.highwayvignette.presentation.common.components.HighwayVignetteDivider
 import com.peterj.highwayvignette.presentation.common.components.HighwayVignetteSnackbarHost
 import com.peterj.highwayvignette.presentation.common.components.HighwayVignetteTopAppBar
 import com.peterj.highwayvignette.presentation.common.components.UiStateWrapper
 import com.peterj.highwayvignette.presentation.navigation.Route
-import kotlinx.serialization.json.Json
 
 @Composable
-fun ConfirmScreen(
-    navController: NavHostController = rememberNavController(),
+fun ConfirmOrderScreen(
+    navController: NavHostController,
     viewModel: ConfirmOrderViewModel = hiltViewModel()
 ) {
-    val counties = viewModel.counties
-    val orderState by viewModel.orderState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val counties by viewModel.counties.collectAsState()
+    val orderState by viewModel.orderState.collectAsState()
+    val vehicleInfo by viewModel.vehicleInfo.collectAsState()
+    val selectedVignette by viewModel.selectedVignette.collectAsState()
 
     LaunchedEffect(Unit) {
         navController.previousBackStackEntry?.savedStateHandle?.let { state ->
-            val jsonSelectedCounties = state.get<String>("selectedCounties")
-            viewModel.counties = jsonSelectedCounties?.let {
-                Json.decodeFromString<List<CountyModel>>(it)
-            }
-            val vehicleInfoJson = state.get<String>("vehicleInfo")
-            viewModel.vehicleInfo = vehicleInfoJson?.let {
-                Json.decodeFromString<VehicleInfo>(it)
-            }
-            val selectedVignetteJson = state.get<String>("selectedVignette")
-            viewModel.selectedVignette = selectedVignetteJson?.let {
-                Json.decodeFromString<VignetteDetail>(it)
-            }
+            viewModel.init(
+                countiesJson = state["selectedCounties"],
+                vehicleJson = state["vehicleInfo"],
+                vignetteJson = state["selectedVignette"]
+            )
         }
     }
 
@@ -110,7 +101,7 @@ fun ConfirmScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
-                            text = viewModel.vehicleInfo?.plate ?: "",
+                            text = vehicleInfo?.plate ?: "",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -129,7 +120,7 @@ fun ConfirmScreen(
                         )
                         Text(
                             text = stringResource(
-                                viewModel.selectedVignette?.vignetteType?.resId
+                                selectedVignette?.vignetteType?.resId
                                     ?: R.string.vignette_type_display_unknown
                             ),
                             style = MaterialTheme.typography.bodySmall
@@ -141,8 +132,8 @@ fun ConfirmScreen(
                     HighwayVignetteDivider()
                 }
 
-                if (viewModel.selectedVignette?.vignetteType != VignetteType.YEAR &&
-                    viewModel.selectedVignette?.vignetteType != VignetteType.UNKNOWN) {
+                if (selectedVignette?.vignetteType != VignetteType.YEAR &&
+                    selectedVignette?.vignetteType != VignetteType.UNKNOWN) {
                     item {
                         Row(
                             modifier = Modifier
@@ -151,14 +142,14 @@ fun ConfirmScreen(
                         ) {
                             Text(
                                 text = stringResource(
-                                    viewModel.selectedVignette?.vignetteType?.resId
+                                    selectedVignette?.vignetteType?.resId
                                         ?: R.string.vignette_type_display_unknown
                                 ), style = MaterialTheme.typography.titleSmall
                             )
                             Text(
                                 text = stringResource(
                                     R.string.formatted_price,
-                                    viewModel.selectedVignette?.cost ?: 0
+                                    selectedVignette?.cost ?: 0
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -179,7 +170,7 @@ fun ConfirmScreen(
                             Text(
                                 text = stringResource(
                                     R.string.formatted_price,
-                                    viewModel.selectedVignette?.transactionFee ?: 0
+                                    selectedVignette?.transactionFee ?: 0
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -187,7 +178,6 @@ fun ConfirmScreen(
                     }
                 }
 
-                if (counties != null) {
                     items(counties) { county ->
                         Row(
                             modifier = Modifier
@@ -198,7 +188,7 @@ fun ConfirmScreen(
                             Text(
                                 text = stringResource(
                                     R.string.formatted_price,
-                                    viewModel.selectedVignette?.cost ?: 0
+                                    selectedVignette?.cost ?: 0
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -219,13 +209,12 @@ fun ConfirmScreen(
                             Text(
                                 text = stringResource(
                                     R.string.formatted_price,
-                                    viewModel.selectedVignette?.transactionFee ?: 0
+                                    selectedVignette?.transactionFee ?: 0
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }
-                }
 
                 item {
                     HighwayVignetteDivider()

@@ -1,8 +1,5 @@
 package com.peterj.highwayvignette.presentation.features.confirm_order
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.peterj.highwayvignette.domain.model.CountyModel
@@ -18,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -26,50 +24,73 @@ import javax.inject.Inject
 class ConfirmOrderViewModel @Inject constructor(
     private val postHighwayOrderUseCase: PostHighwayOrderUseCase,
 ) : ViewModel() {
-    var counties by mutableStateOf<List<CountyModel>?>(null)
-    var vehicleInfo by mutableStateOf<VehicleInfo?>(null)
-    var selectedVignette by mutableStateOf<VignetteDetail?>(null)
 
-    val totalCost: Int
-        get() = (counties?.count() ?: 1) * (selectedVignette?.cost
-            ?: 0) + (selectedVignette?.transactionFee ?: 0)
+    private val _counties = MutableStateFlow<List<CountyModel>>(emptyList())
+    val counties: StateFlow<List<CountyModel>> = _counties
+
+    private val _vehicleInfo = MutableStateFlow<VehicleInfo?>(null)
+    val vehicleInfo: StateFlow<VehicleInfo?> = _vehicleInfo
+
+    private val _selectedVignette = MutableStateFlow<VignetteDetail?>(null)
+    val selectedVignette: StateFlow<VignetteDetail?> = _selectedVignette
 
     private val _orderState = MutableStateFlow<UiState<HighwayOrderResult>>(UiState.Empty)
     val orderState: StateFlow<UiState<HighwayOrderResult>> = _orderState
 
+    val totalCost: Int
+        get() {
+            val vignette = _selectedVignette.value ?: return 0
+            val count = if (vignette.vignetteType == VignetteType.YEAR)
+                _counties.value.size
+            else 1
+            return count * vignette.cost + vignette.transactionFee
+        }
+
+    fun init(
+        countiesJson: String?,
+        vehicleJson: String?,
+        vignetteJson: String?
+    ) {
+        _counties.value = countiesJson?.let {
+            Json.decodeFromString<List<CountyModel>>(it)
+        } ?: emptyList()
+
+        _vehicleInfo.value = vehicleJson?.let {
+            Json.decodeFromString<VehicleInfo>(it)
+        }
+
+        _selectedVignette.value = vignetteJson?.let {
+            Json.decodeFromString<VignetteDetail>(it)
+        }
+    }
+
     fun orderVignette() {
-        val vignetteInfo = selectedVignette ?: return
-        val selectedCounties = counties
+        val vignetteInfo = selectedVignette.value ?: return
 
         viewModelScope.launch {
             _orderState.value = UiState.Loading
-            try {
-                if (vignetteInfo.vignetteType == VignetteType.YEAR) {
-                    if (selectedCounties.isNullOrEmpty()) {
-                        return@launch
-                    }
-                    val orderResult = postHighwayOrderUseCase.execute(
-                        selectedCounties.map {
-                            HighwayOrder(
-                                type = it.id,
-                                category = vehicleInfo?.type ?: "",
-                                cost = vignetteInfo.cost,
-                            )
-                        }
+
+            val orders = if (vignetteInfo.vignetteType == VignetteType.YEAR) {
+                counties.value.map {
+                    HighwayOrder(
+                        type = it.id,
+                        category = vehicleInfo.value?.type ?: "",
+                        cost = vignetteInfo.cost
                     )
-                    _orderState.value = UiState.Success(orderResult)
-                } else {
-                    val orderResult = postHighwayOrderUseCase.execute(
-                        listOf(
-                            HighwayOrder(
-                                type = vignetteInfo.vignetteType.name,
-                                category = vehicleInfo?.type ?: "",
-                                cost = vignetteInfo.cost,
-                            )
-                        )
-                    )
-                    _orderState.value = UiState.Success(orderResult)
                 }
+            } else {
+                listOf(
+                    HighwayOrder(
+                        type = vignetteInfo.vignetteType.name,
+                        category = vehicleInfo.value?.type ?: "",
+                        cost = vignetteInfo.cost
+                    )
+                )
+            }
+
+            try {
+                val result = postHighwayOrderUseCase.execute(orders)
+                _orderState.value = UiState.Success(result)
             } catch (e: HttpException) {
                 _orderState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
             } catch (e: IOException) {

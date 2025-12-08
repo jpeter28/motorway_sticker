@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.peterj.highwayvignette.presentation.features.confirm_order.ConfirmScreen
+import com.peterj.highwayvignette.presentation.features.confirm_order.ConfirmOrderScreen
 import com.peterj.highwayvignette.presentation.features.main.MainScreen
 import com.peterj.highwayvignette.presentation.features.success.SuccessScreen
 import com.peterj.highwayvignette.presentation.features.county_chooser.CountyChooserScreen
@@ -30,7 +30,7 @@ fun Navigation(navController: NavHostController, modifier: Modifier = Modifier) 
             CountyChooserScreen(navController)
         }
         composable(Route.ConfirmOrder.route) {
-            ConfirmScreen(navController)
+            ConfirmOrderScreen(navController)
         }
         composable(Route.Success.route) {
             SuccessScreen(navController)

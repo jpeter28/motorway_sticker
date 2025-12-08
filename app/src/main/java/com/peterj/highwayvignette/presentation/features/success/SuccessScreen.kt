@@ -23,15 +23,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.peterj.highwayvignette.R
 import com.peterj.highwayvignette.presentation.navigation.Route
 import com.peterj.highwayvignette.presentation.theme.topBarColor
 
-@Preview
 @Composable
 fun SuccessScreen(
-    navController: NavHostController = rememberNavController(),
+    navController: NavHostController,
 ) {
     Scaffold(
         content = { innerPadding ->

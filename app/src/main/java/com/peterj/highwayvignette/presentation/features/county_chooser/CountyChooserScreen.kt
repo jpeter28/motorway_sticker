@@ -2,8 +2,6 @@ package com.peterj.highwayvignette.presentation.features.county_chooser
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -28,12 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.json.Json
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.ColorFilter
@@ -43,7 +42,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import com.peterj.highwayvignette.R
 import com.peterj.highwayvignette.domain.model.CountyModel
-import com.peterj.highwayvignette.domain.model.VignetteDetail
 import com.peterj.highwayvignette.domain.model.countiesList
 import com.peterj.highwayvignette.domain.model.countyDrawables
 import com.peterj.highwayvignette.presentation.common.components.HighwayVignetteDivider
@@ -56,23 +54,22 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CountyChooserScreen(
-    navController: NavHostController = rememberNavController(),
+    navController: NavHostController,
     viewModel: CountyChooserViewModel = hiltViewModel()
 ) {
-    val counties = viewModel.counties
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val counties by viewModel.counties.collectAsState()
+    val selectedVignette by viewModel.selectedVignette.collectAsState()
+    val checkedStates by viewModel.checkedStates.collectAsState()
+
     LaunchedEffect(Unit) {
         navController.previousBackStackEntry?.savedStateHandle?.let { state ->
-            val jsonCounties = state.get<String>("counties")
-            viewModel.counties = jsonCounties?.let {
-                Json.decodeFromString<List<CountyModel>>(it)
-            }
-            val jsonSelectedVignette = state.get<String>("selectedVignette")
-            viewModel.selectedVignette = jsonSelectedVignette?.let {
-                Json.decodeFromString<VignetteDetail>(it)
-            }
+            viewModel.init(
+                state["counties"] ?: "[]",
+                state["selectedVignette"]
+            )
         }
     }
 
@@ -107,19 +104,17 @@ fun CountyChooserScreen(
 
                 item {
                     Map(
-                        checkedStates = viewModel.checkedStates,
+                        checkedStates = checkedStates,
                     )
                 }
 
-                if (counties != null) {
-                    items(counties) { county ->
-                        CountyRowItem(
-                            name = county.name,
-                            price = viewModel.selectedVignette?.cost ?: 0,
-                            checked = viewModel.checkedStates[county] ?: false,
-                            onToggle = { viewModel.toggleCounty(county) }
-                        )
-                    }
+                items(counties) { county ->
+                    CountyRowItem(
+                        name = county.name,
+                        price = selectedVignette?.cost ?: 0,
+                        checked = checkedStates[county] ?: false,
+                        onToggle = { viewModel.toggleCounty(county) }
+                    )
                 }
 
                 item {
@@ -150,19 +145,13 @@ fun CountyChooserScreen(
                                     ?.savedStateHandle
                                     ?.get<String>("vehicleInfo")
                                 navController.currentBackStackEntry?.savedStateHandle?.let { state ->
-                                    state.set(
-                                        "selectedCounties", Json.encodeToString(
-                                            viewModel.getSelectedCounties()
-                                        )
+                                    state["selectedCounties"] = Json.encodeToString(
+                                        viewModel.getSelectedCounties()
                                     )
-                                    state.set(
-                                        "selectedVignette", Json.encodeToString(
-                                            viewModel.selectedVignette
-                                        )
+                                    state["selectedVignette"] = Json.encodeToString(
+                                        selectedVignette
                                     )
-                                    state.set(
-                                        "vehicleInfo", vehicleJson
-                                    )
+                                    state["vehicleInfo"] = vehicleJson
                                 }
 
                                 navController.navigate(Route.ConfirmOrder.route)

@@ -34,8 +34,8 @@ class MainViewModel @Inject constructor(
     private val _selectedVignette = MutableStateFlow<VignetteDetail?>(null)
     val selectedVignette: StateFlow<VignetteDetail?> = _selectedVignette
 
-    private val _counties: MutableList<CountyModel> = mutableListOf()
-    val counties: MutableList<CountyModel> = _counties
+    private val _counties = MutableStateFlow<List<CountyModel>>(emptyList())
+    val counties: StateFlow<List<CountyModel>> = _counties
 
     init {
         loadData()
@@ -47,37 +47,18 @@ class MainViewModel @Inject constructor(
 
     private fun loadData() = viewModelScope.launch {
         _vehicleInfoState.value = UiState.Loading
-        _vignettesState.value = UiState.Loading
 
-        val vehicleInfo = try {
-            getVehicleInfoUseCase.execute()
-        } catch (e: HttpException) {
-            _vehicleInfoState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
-            _vignettesState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
-            return@launch
-        } catch (e: IOException) {
-            _vehicleInfoState.value = UiState.Error(HighwayVignetteError.NetworkError)
-            _vignettesState.value = UiState.Error(HighwayVignetteError.NetworkError)
-            return@launch
-        } catch (e: Exception) {
-            _vehicleInfoState.value = UiState.Error(HighwayVignetteError.Unknown(e.message))
-            _vignettesState.value = UiState.Error(HighwayVignetteError.Unknown(e.message))
-            return@launch
-        }
+        val vehicleInfo = runCatching { getVehicleInfoUseCase.execute() }
+            .onFailure { e -> handleError(e, isVehicle = true) }
+            .getOrNull() ?: return@launch
+
         _vehicleInfoState.value = UiState.Success(vehicleInfo)
 
-        val highwayInfo = try {
-            getHighwayInfoUseCase.execute()
-        } catch (e: HttpException) {
-            _vignettesState.value = UiState.Error(HighwayVignetteError.ServerError(e.code()))
-            return@launch
-        } catch (e: IOException) {
-            _vignettesState.value = UiState.Error(HighwayVignetteError.NetworkError)
-            return@launch
-        } catch (e: Exception) {
-            _vignettesState.value = UiState.Error(HighwayVignetteError.Unknown(e.message))
-            return@launch
-        }
+        _vignettesState.value = UiState.Loading
+
+        val highwayInfo = runCatching { getHighwayInfoUseCase.execute() }
+            .onFailure { e -> handleError(e, isVehicle = false) }
+            .getOrNull() ?: return@launch
 
         val uiList = filterVignettes(
             highwayInfo = highwayInfo,
@@ -86,7 +67,20 @@ class MainViewModel @Inject constructor(
         )
 
         _vignettesState.value = UiState.Success(uiList)
-        _counties.addAll(getCounties(highwayInfo))
+        _counties.value = getCounties(highwayInfo)
+    }
+
+    private fun handleError(e: Throwable, isVehicle: Boolean) {
+        val error = when (e) {
+            is HttpException -> HighwayVignetteError.ServerError(e.code())
+            is IOException -> HighwayVignetteError.NetworkError
+            else -> HighwayVignetteError.Unknown(e.message)
+        }
+        if (isVehicle) {
+            _vehicleInfoState.value = UiState.Error(error)
+        } else {
+            _vignettesState.value = UiState.Error(error)
+        }
     }
 
     private fun filterVignettes(
@@ -114,10 +108,6 @@ class MainViewModel @Inject constructor(
                 vignette.types.containsAll(highwayInfo.counties.map { it.id })
             }
 
-        return if (vignette != null) {
-            highwayInfo.counties
-        } else {
-            emptyList()
-        }
+        return vignette?.let { highwayInfo.counties } ?: emptyList()
     }
 }

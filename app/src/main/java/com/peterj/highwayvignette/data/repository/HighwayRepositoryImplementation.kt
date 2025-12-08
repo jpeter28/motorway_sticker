@@ -10,7 +10,9 @@ import com.peterj.highwayvignette.domain.model.VehicleInfo
 import com.peterj.highwayvignette.domain.repository.HighwayRepository
 import toDomain
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class HighwayRepositoryImplementation @Inject constructor(
     private val api: HighwayApiService
 ) : HighwayRepository {

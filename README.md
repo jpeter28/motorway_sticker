@@ -13,7 +13,7 @@ BASE_URL=http://<your_local_ip>:8080/
 
 # Possible improvements
 
-- The API should be able to accept a language parameter and it can send back result in that language, easier to scale multiple languages 
+- The API should be able to accept a language parameter and it can send back result in that language, easier to scale for multiple languages 
 - The API should be able to accept a list of vehicle types parameter so it will only return with the results for that vehicles
 - The Application only handles one vehicle, but it is possible that one user has more
-- The Map is not finished, it will look differently on different devices, should look the same on all devices
+- The Map is not finished, it will look differently on different devices

@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.peterj.highwayvignette.R
 import com.peterj.highwayvignette.domain.model.VignetteDetail
 import com.peterj.highwayvignette.domain.model.VehicleInfo
@@ -56,11 +55,12 @@ import kotlinx.serialization.json.Json
 
 @Composable
 fun MainScreen(
-    navController: NavHostController = rememberNavController(),
+    navController: NavHostController,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
+
     val vehicleState by viewModel.vehicleInfoState.collectAsState()
     val vignettesState by viewModel.vignettesState.collectAsState()
     val selectedVignette by viewModel.selectedVignette.collectAsState()
@@ -89,13 +89,12 @@ fun MainScreen(
                 CountryVignetteCard(
                     uiState = vignettesState,
                     selectedVignette = selectedVignette,
-                    viewModel = viewModel,
                     title = stringResource(R.string.national_vignette),
                     buttonText = stringResource(R.string.purchase),
                     onButtonClick = {
-                        if (viewModel.selectedVignette.value != null) {
+                        if (selectedVignette != null) {
                             val vehicleInfo =
-                                (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
+                                (vehicleState as? UiState.Success<VehicleInfo>)?.data
                             if (vehicleInfo != null) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     "vehicleInfo", Json.encodeToString(vehicleInfo)
@@ -103,10 +102,13 @@ fun MainScreen(
                             }
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "selectedVignette",
-                                Json.encodeToString(viewModel.selectedVignette.value)
+                                Json.encodeToString(selectedVignette)
                             )
                             navController.navigate(Route.ConfirmOrder.route)
                         }
+                    },
+                    onSelect = { selectedVignette ->
+                        viewModel.selectVignette(selectedVignette)
                     }
                 )
 
@@ -119,7 +121,7 @@ fun MainScreen(
                         title = stringResource(R.string.yearly_vignettes),
                         onClick = {
                             val vehicleInfo =
-                                (viewModel.vehicleInfoState.value as? UiState.Success<VehicleInfo>)?.data
+                                (vehicleState as? UiState.Success<VehicleInfo>)?.data
                             if (vehicleInfo != null) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     "vehicleInfo", Json.encodeToString(vehicleInfo)
@@ -132,7 +134,7 @@ fun MainScreen(
                             )
 
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "counties", Json.encodeToString(viewModel.counties)
+                                "counties", Json.encodeToString(viewModel.counties.value)
                             )
                             navController.navigate(Route.CountyChooser.route)
                         }
@@ -208,11 +210,11 @@ fun UserInfoCard(
 fun CountryVignetteCard(
     uiState: UiState<List<VignetteDetail>>,
     selectedVignette: VignetteDetail?,
-    viewModel: MainViewModel,
     modifier: Modifier = Modifier,
     title: String,
     buttonText: String,
-    onButtonClick: () -> Unit
+    onButtonClick: () -> Unit,
+    onSelect: (VignetteDetail) -> Unit,
 ) {
     BaseCard(modifier = modifier) {
         UiStateWrapper(state = uiState) { vignettes ->
@@ -231,7 +233,7 @@ fun CountryVignetteCard(
                             middleText = "${vignette.vignetteCategory} - ${stringResource(vignette.vignetteType.resId)}",
                             rightText = stringResource(R.string.formatted_price, vignette.cost),
                             selected = vignette.vignetteType == selectedVignette?.vignetteType,
-                            onSelect = { viewModel.selectVignette(vignette) }
+                            onSelect = { onSelect(vignette) }
                         )
                     }
             }
